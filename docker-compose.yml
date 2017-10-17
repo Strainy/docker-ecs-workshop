@@ -1,0 +1,40 @@
+version: '3'
+
+services:
+
+  web:
+    image: votify-web:latest
+    build:
+      context: './web'
+    ports:
+      - '8000:80'
+    volumes:
+      - './web/app:/usr/share/nginx/html'
+    environment:
+      - "API_ENDPOINT=http://localhost:3000"
+
+  api:
+    image: votify-api:latest
+    build:
+      context: './api'
+    ports:
+      - '3000:3000'
+    volumes:
+      - './api:/app'
+    environment:
+      - "PGUSER=postgres"
+      - "PGHOST=db"
+      - "PGPASSWORD=password"
+      - "PGDATABASE=votify"
+      - "PGPORT=5432"
+
+  db:
+    image: votify-dev-db:latest
+    build:
+      context: './db'
+    ports:
+      - '5432:5432'
+    volumes:
+      - './db/data:/var/lib/postgresql/data'
+    environment:
+      - "POSTGRES_PASSWORD=password"

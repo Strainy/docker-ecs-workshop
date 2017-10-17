@@ -1,0 +1,45 @@
+body,html {
+    height: 100%;
+    width: 100%;
+}
+
+h1 {
+    width: 100%;
+}
+
+*, *:before, *:after {
+    -webkit-user-select: none; /* Chrome/Safari */        
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* IE10+ */
+}
+
+#appreciate {
+    position: absolute;
+    bottom: 4em;
+    width: 80%;
+}
+
+.thumb {
+    cursor: pointer;
+    flex-direction: column;
+    justify-content: center;
+    border-radius: 3em;
+    width: 6em;
+    height: 6em;
+    padding: 0;
+    margin: 3em;
+}
+
+.thumb img {
+    width: 2em;
+    height: 2em;
+    align-self: center;
+}
+
+.thumb:hover {
+    filter: brightness(110%);
+}
+
+.thumb:active {
+    filter: brightness(85%);
+}
