@@ -1,0 +1,41 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: Votify Infrastructure Deployment
+
+Parameters:
+
+Resources:
+
+  VotifySharedStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: votify-shared.yml
+      Parameters:
+
+  VotifyEcsClusterStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: VotifySharedStack
+    Properties:
+      TemplateURL: votify-ecs-cluster.yml
+      Parameters:
+
+  VotifyApiSeviceStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: VotifyEcsClusterStack
+    Properties:
+      TemplateURL: votify-service-api.yml
+      Parameters:
+
+  VotifyWebSeviceStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: VotifyEcsClusterStack
+    Properties:
+      TemplateURL: votify-service-web.yml
+      Parameters:
+
+  VotifyDatabaseStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: VotifyEcsClusterStack
+    Properties:
+      TemplateURL: votify-db.yml
+      Parameters:
