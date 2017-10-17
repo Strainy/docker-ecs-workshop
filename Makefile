@@ -2,7 +2,7 @@ VERSION := 1.0.0
 REPO := ec2.amazonaws.com
 
 db:
-	docker build -t votify-db:$(VERSION) ./db
+	docker build -t votify-db:$(VERSION) ./db --build-arg PROD=true
 
 api:
 	docker build -t votify-api:$(VERSION) ./api

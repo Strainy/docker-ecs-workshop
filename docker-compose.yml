@@ -17,10 +17,12 @@ services:
     image: votify-api:1.0.0
     build:
       context: './api'
+      args:
+        PROD: "false"
     ports:
       - '3000:3000'
-    # volumes:
-    #   - './api:/app'
+    volumes:
+      - './api:/app'
     environment:
       - "PGUSER=postgres"
       - "PGHOST=db"

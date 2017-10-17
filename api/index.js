@@ -1,14 +1,18 @@
 const express = require('express')
 const bodyParser = require("body-parser")
-const { Pool, Client } = require('pg')
+const {
+  Pool,
+  Client
+} = require('pg')
 
 // Ensure we're exiting the app when "docker stop" is called
 exitOnSignal('SIGINT');
 exitOnSignal('SIGTERM');
+
 function exitOnSignal(signal) {
-	process.on(signal, function() {
-		process.exit(1);
-   });
+  process.on(signal, function() {
+    process.exit(1);
+  });
 }
 process.stdin.resume();
 
@@ -17,7 +21,9 @@ const pool = new Pool()
 
 // express app and middleware
 const app = express()
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({
+  extended: false
+}));
 app.use(bodyParser.json());
 
 // config for cors
@@ -28,27 +34,39 @@ app.use(function(req, res, next) {
 });
 
 // simple health check endpoint
-app.get('/health', function (req, res) {
+app.get('/health', function(req, res) {
   res.send('Healthy :)')
 })
 
 // create a vote
-app.post('/vote', function (req, res) {
+app.post('/vote', function(req, res) {
 
-	let answer = req.body.answer
+  let answer = req.body.answer
   console.log("Vote received. Value: " + answer)
 
   pool.query('INSERT INTO votes (value) VALUES ($1)', [answer], (err, result) => {
-    if(err) {
+    if (err) {
       console.error(err)
-    }
-    else {
+    } else {
       res.send('OK')
     }
   })
 
 })
 
-app.listen(3000, function () {
+// create a vote
+app.get('/results', function(req, res) {
+
+  pool.query('SELECT value, COUNT(value) from votes GROUP BY value;', (err, result) => {
+    if (err) {
+      console.error(err)
+    } else {
+      res.send(result.rows)
+    }
+  })
+
+})
+
+app.listen(3000, function() {
   console.log('Votify listening on port 3000!')
 })

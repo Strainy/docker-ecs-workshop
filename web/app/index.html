@@ -1,80 +1,137 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
-        <link rel="stylesheet" href="style.css">
-    </head>
-    <body>
-        <div class="container d-flex h-100">
-            <div id="experience" class="row align-self-center">
-                <h1>How would you rate your experience today?</h1>
-                <div id="thumbs-up" class="container d-flex thumb bg-success">
-                    <img src="thumb-up.svg" alt="thumb up">
-                </div>
-                <div id="thumbs-down" class="container d-flex thumb bg-danger">
-                    <img src="thumb-down.svg" alt="thumb down">
-                </div>
-            </div>
-			<div id="appreciate" class="alert alert-info" role="alert" style="display: none">
-  				<strong>Thank you!</strong> Your feedback is much appreciated.
-			    <div id ="appreciate-progress" class="progress-bar w-25 progress-bar-animated" style="height: 1px; width: 100%; margin-top: 5px;" role="progressbar"></div>
-            </div>
-        </div>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-        <script type="text/javascript">
 
-            var appreciate = $("#appreciate");
-            var appreciate_progress = $("#appreciate-progress");
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+  <link rel="stylesheet" href="style.css">
+</head>
 
-            // load config
-            var api_endpoint;
-            function retrieveConfig(callback) {
-              $.get('/config-processed.env').done(function (file) {
-                var config = file.split('=');
-                api_endpoint = config[1];
-                callback();
-              });
-            }
+<body>
 
-            function submitVote(vote) {
+  <ul>
+    <li><a href="#vote" id="vote-link" class="link">Votify</a></li>
+    <li><a href="#result" id="result-link" class="link">Results</a></li>
+  </ul>
 
-                appreciate.show();
-                appreciate_progress.removeClass("w-25");
-                appreciate_progress.addClass("w-50");
+  <div id="experience" class="container d-flex h-100">
+    <div class="row align-self-center">
+      <h1>How would you rate your experience today?</h1>
+      <div id="thumbs-up" class="container d-flex thumb bg-success">
+        <img src="thumb-up.svg" alt="thumb up">
+      </div>
+      <div id="thumbs-down" class="container d-flex thumb bg-danger">
+        <img src="thumb-down.svg" alt="thumb down">
+      </div>
+    </div>
+    <div id="appreciate" class="alert alert-info" role="alert" style="display: none">
+      <strong>Thank you!</strong> Your feedback is much appreciated.
+      <div id="appreciate-progress" class="progress-bar w-25 progress-bar-animated" style="height: 1px; width: 100%; margin-top: 5px;" role="progressbar"></div>
+    </div>
+  </div>
 
-                if(typeof api_endpoint == 'undefined') {
-                   // if config not set, retrieve config and recall function
-                   retrieveConfig(function() { submitVote(vote) });
-                }
-                else {
+  <div id="results" class="container d-flex h-100">
+    <div class="container d-flex" style="position: relative; height:50vh; width:50vw">
+      <canvas id="myChart"></canvas>
+    </div>
+  </div>
 
-                  appreciate_progress.removeClass("w-50");
-                  appreciate_progress.addClass("w-75");
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
+  <script type="text/javascript">
+    var appreciate = $("#appreciate");
+    var appreciate_progress = $("#appreciate-progress");
 
-                  let answer = { answer: vote };
+    // load config
+    var api_endpoint;
 
-                  $.post(api_endpoint + "/vote", answer, function(data, status) {
+    function retrieveConfig(callback) {
+      $.get('/config-processed.env').done(function(file) {
+        var config = file.split('=');
+        api_endpoint = config[1];
+        if(typeof callback !== 'undefined') {
+          callback();
+        }
+      });
+    }
+    retrieveConfig();
 
-                    appreciate_progress.removeClass("w-75");
-                    appreciate_progress.addClass("w-100");
+    function submitVote(vote) {
 
-                    setTimeout(function() {
-                        appreciate.hide();
-                        appreciate_progress.removeClass("w-100");
-                        appreciate_progress.addClass("w-25");
-                    }, 1000);
+      appreciate.show();
+      appreciate_progress.removeClass("w-25");
+      appreciate_progress.addClass("w-50");
 
-                  })
+      if (typeof api_endpoint == 'undefined') {
+        // if config not set, retrieve config and recall function
+        retrieveConfig(function() {
+          submitVote(vote)
+        });
+      } else {
 
-                }
+        appreciate_progress.removeClass("w-50");
+        appreciate_progress.addClass("w-75");
 
-            }
+        let answer = {
+          answer: vote
+        };
 
-            $("#thumbs-up").click(function(e) { submitVote('1') });
-            $("#thumbs-down").click(function(e) { submitVote('0') });
+        $.post(api_endpoint + "/vote", answer, function(data, status) {
 
-        </script>
-    </body>
+          appreciate_progress.removeClass("w-75");
+          appreciate_progress.addClass("w-100");
+
+          setTimeout(function() {
+            appreciate.hide();
+            appreciate_progress.removeClass("w-100");
+            appreciate_progress.addClass("w-25");
+          }, 1000);
+
+        })
+
+      }
+
+    }
+
+    $("#thumbs-up").click(function(e) {
+      submitVote('1')
+    });
+    $("#thumbs-down").click(function(e) {
+      submitVote('0')
+    });
+
+    $("#vote-link").click(function(e) {
+      $("#experience").removeClass("invisible");
+      $("#results").addClass("invisible");
+    });
+
+    $("#result-link").click(function(e) {
+
+      $("#experience").addClass("invisible");
+      $("#results").removeClass("invisible");
+
+      $.get(api_endpoint + '/results').done(function(data) {
+        var data = $.map(data, function(value, index) {
+          return [value.count];
+        });
+        var labels = $.map(data, function(value, index) {
+          return [index];
+        });
+        var ctx = document.getElementById('myChart').getContext('2d');
+        var resultsChart = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            datasets: [{ data, backgroundColor: [ 'rgba(192, 57, 43, 0.75)', 'rgba(39, 174, 96, 0.75)' ] }],
+            labels
+          },
+          options: {}
+        });
+      });
+
+    });
+
+  </script>
+</body>
+
 </html>

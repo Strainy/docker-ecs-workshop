@@ -1,45 +1,86 @@
-body,html {
-    height: 100%;
-    width: 100%;
+body, html {
+  height: 100%;
+  width: 100%;
 }
 
 h1 {
-    width: 100%;
+  width: 100%;
+}
+
+ul {
+  float: right;
+  list-style-type: none;
+  margin: 1em;
+  padding: 0;
+}
+
+li {
+  display: inline;
+  padding: 1em;
 }
 
 *, *:before, *:after {
-    -webkit-user-select: none; /* Chrome/Safari */        
-    -moz-user-select: none; /* Firefox */
-    -ms-user-select: none; /* IE10+ */
+  -webkit-user-select: none;
+  /* Chrome/Safari */
+  -moz-user-select: none;
+  /* Firefox */
+  -ms-user-select: none;
+  /* IE10+ */
+}
+
+#experience {
+  padding-left: 5em;
 }
 
 #appreciate {
-    position: absolute;
-    bottom: 4em;
-    width: 80%;
+  position: absolute;
+  bottom: 4em;
+  width: 80%;
+}
+
+#results {
+  padding-top: 5em;
+  flex-direction: column;
+}
+
+#myChart {
+  height: 7.5em;
+  width: 7.5em;
 }
 
 .thumb {
-    cursor: pointer;
-    flex-direction: column;
-    justify-content: center;
-    border-radius: 3em;
-    width: 6em;
-    height: 6em;
-    padding: 0;
-    margin: 3em;
+  cursor: pointer;
+  flex-direction: column;
+  justify-content: center;
+  border-radius: 3em;
+  width: 6em;
+  height: 6em;
+  padding: 0;
+  margin: 3em;
 }
 
 .thumb img {
-    width: 2em;
-    height: 2em;
-    align-self: center;
+  width: 2em;
+  height: 2em;
+  align-self: center;
 }
 
 .thumb:hover {
-    filter: brightness(110%);
+  filter: brightness(110%);
 }
 
 .thumb:active {
-    filter: brightness(85%);
+  filter: brightness(85%);
+}
+
+.link {
+  color: #AAAAAA;
+}
+
+.link:hover {
+  text-decoration: none;
+}
+
+.invisible {
+  display: none !important;
 }
