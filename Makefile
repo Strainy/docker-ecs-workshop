@@ -1,19 +1,22 @@
 VERSION := 1.0.0
-REPO := ec2.amazonaws.com
 
-db:
-	docker build -t votify-db:$(VERSION) ./db --build-arg PROD=true
+USERNAME := strainj
+ECR_URI := 590312749310.dkr.ecr.ap-southeast-2.amazonaws.com
 
 api:
-	docker build -t votify-api:$(VERSION) ./api
+	docker build -t $(ECR_URI)/$(USERNAME)-api:$(VERSION) ./api
 
 web:
-	docker build -t votify-web:$(VERSION) ./web
+	docker build -t $(ECR_URI)/$(USERNAME)-web:$(VERSION) ./web
 
-all: db api web
+all: api web
+
+repo:
+	aws ecr create-repository --repository-name $(USERNAME)-web
+	aws ecr create-repository --repository-name $(USERNAME)-api
 
 publish: api web
-	docker push $(REPO)/votify-api:$(VERSION)
-	docker push $(REPO)/votify-web:$(VERSION)
+	docker push $(ECR_URI)/$(USERNAME)-web:$(VERSION)
+	docker push $(ECR_URI)/$(USERNAME)-api:$(VERSION)
 
-.PHONY: db api web all publish
+.PHONY: api web all publish
