@@ -1,0 +1,136 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: Votify Infrastructure Deployment
+
+Parameters:
+  VpcId:
+    Type: String
+    Description: VPC to deploy the Votify Stack into.
+  PublicSubnets:
+    Type: String
+    Description: Public subnets for the Service Load Balancer
+  PrivateSubnets:
+    Type: String
+    Description: Private subnets for the ECS Cluster Autoscaling Group
+  InstanceType:
+    Type: String
+    Description: Instance type of underlying EC2 hosts
+    Default: t2.small
+  ClusterSize:
+    Type: String
+    Description: The number of EC2 hosts in the ECS cluster
+    Default: 1
+  RepoUrl:
+    Type: String
+    Description: The docker repository the images are located in
+  WebImage:
+    Type: String
+    Description: The image name and tag for the web service
+  ApiImage:
+    Type: String
+    Description: The image name and tag for the api service
+  PostgresMultiAZ:
+    Type: String
+    Description: Enable MultiAZ for the RDS PostgreSQL database
+    Default: false
+  PostgresDbStorage:
+    Default: 5
+    Type: Number
+    Description: The size of the Postgres database
+    MinValue: 5
+    MaxValue: 6144
+    ConstraintDescription: Must be between 5 and 6144
+  PostgresDbInstanceClass:
+    Type: String
+    Description: Instance class for the Postgres RDS
+    AllowedValues:
+      - db.t2.small
+      - db.t2.medium
+      - db.t2.large
+      - db.m4.large
+    Default: db.t2.medium
+  PostgresDbUser:
+    Type: String
+    Description: Postgres RDS database username
+  PostgresDbPassword:
+    Type: String
+    NoEcho: true
+    Description: Postgres RDS database password
+    MinLength: 8
+
+Resources:
+
+  VotifySharedStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: votify-shared.yml
+      Parameters:
+        InstallationName: !Ref AWS::StackName
+        VPC: !Ref VpcId
+        PublicSubnets: !Ref PublicSubnets
+
+  VotifyEcsClusterStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: VotifySharedStack
+    Properties:
+      TemplateURL: votify-ecs-cluster.yml
+      Parameters:
+        InstallationName: !Ref AWS::StackName
+        ClusterName: !Sub ${AWS::StackName}-Votify-ECS-Cluster
+        VPC: !Ref VpcId
+        PrivateSubnets: !Ref PrivateSubnets
+        ClusterSecurityGroup: !GetAtt VotifySharedStack.Outputs.EcsClusterSecurityGroup
+        ClusterSize: !Ref ClusterSize
+        InstanceType: !Ref InstanceType
+
+  VotifyWebSeviceStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: VotifyEcsClusterStack
+    Properties:
+      TemplateURL: votify-service-web.yml
+      Parameters:
+        InstallationName: !Ref AWS::StackName
+        VPC: !Ref VpcId
+        Cluster: !Sub ${AWS::StackName}-Votify-ECS-Cluster
+        DesiredCount: 1
+        RepoUrl: !Ref RepoUrl
+        DockerImageAndTag: !Ref WebImage
+        LoadBalancerDNS: !GetAtt VotifySharedStack.Outputs.LoadBalancerEndpoint
+        LoadBalancerListener: !GetAtt VotifySharedStack.Outputs.LoadBalancerListener
+
+  VotifyApiSeviceStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: VotifyDatabaseStack
+    Properties:
+      TemplateURL: votify-service-api.yml
+      Parameters:
+        InstallationName: !Ref AWS::StackName
+        VPC: !Ref VpcId
+        Cluster: !Sub ${AWS::StackName}-Votify-ECS-Cluster
+        DesiredCount: 1
+        RepoUrl: !Ref RepoUrl
+        DockerImageAndTag: !Ref ApiImage
+        LoadBalancerListener: !GetAtt VotifySharedStack.Outputs.LoadBalancerListener
+        DbHost: !GetAtt VotifyDatabaseStack.Outputs.DbHost
+        DbPort: !GetAtt VotifyDatabaseStack.Outputs.DbPort
+        DbUser: !Ref PostgresDbUser
+        DbPass: !Ref PostgresDbPassword
+
+  VotifyDatabaseStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: VotifySharedStack
+    Properties:
+      TemplateURL: votify-db.yml
+      Parameters:
+        InstallationName: !Ref AWS::StackName
+        PrivateSubnets: !Ref PrivateSubnets
+        SecurityGroup: !GetAtt VotifySharedStack.Outputs.DbSecurityGroup
+        PostgresMultiAZ: !Ref PostgresMultiAZ
+        PostgresDbStorage: !Ref PostgresDbStorage
+        PostgresDbInstanceClass: !Ref PostgresDbInstanceClass
+        PostgresDbUser: !Ref PostgresDbUser
+        PostgresDbPassword: !Ref PostgresDbPassword
+
+Outputs:
+  URL:
+    Value: !GetAtt VotifySharedStack.Outputs.LoadBalancerEndpoint

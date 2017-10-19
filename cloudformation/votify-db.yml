@@ -1,0 +1,76 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: Votify RDS Instance
+
+Parameters:
+  InstallationName:
+    Type: String
+    Description: Indentifier for entire stack and related resources
+  PrivateSubnets:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: Private subnets within VPC to deploy into
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup::Id
+    Description: Security group for DB
+  PostgresMultiAZ:
+    Type: String
+    Description: Enable MultiAZ for the RDS PostgreSQL database
+    Default: false
+  PostgresDbStorage:
+    Default: 5
+    Type: Number
+    Description: The size of the Postgres database
+    MinValue: 5
+    MaxValue: 6144
+    ConstraintDescription: Must be between 5 and 6144
+  PostgresDbInstanceClass:
+    Type: String
+    Description: Instance class for the Postgres RDS
+    AllowedValues:
+      - db.t2.small
+      - db.t2.medium
+      - db.t2.large
+      - db.m4.large
+    Default: db.t2.medium
+  PostgresDbUser:
+    Type: String
+    Description: Postgres RDS database username
+  PostgresDbPassword:
+    Type: String
+    NoEcho: true
+    Description: Postgres RDS database password
+    MinLength: 8
+
+Resources:
+
+  PostgresSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: DB Subnets for Postgres
+      SubnetIds: !Ref PrivateSubnets
+
+  Database:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: !Sub ${InstallationName}-DB
+      DBName: votify
+      DBSubnetGroupName: !Ref PostgresSubnetGroup
+      MultiAZ: !Ref PostgresMultiAZ
+      AllocatedStorage: !Ref PostgresDbStorage
+      DBInstanceClass: !Ref PostgresDbInstanceClass
+      Engine: postgres
+      EngineVersion: 9.6.1
+      MasterUsername: !Ref PostgresDbUser
+      MasterUserPassword: !Ref PostgresDbPassword
+      Port: 5432
+      Tags:
+        - Key: Name
+          Value: !Sub ${InstallationName}-DB
+      VPCSecurityGroups:
+        - !Ref SecurityGroup
+
+Outputs:
+  DbHost:
+    Value: !GetAtt Database.Endpoint.Address
+  DbPort:
+    Value: !GetAtt Database.Endpoint.Port

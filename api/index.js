@@ -4,6 +4,7 @@ const {
   Pool,
   Client
 } = require('pg')
+var fs = require('fs');
 
 // Ensure we're exiting the app when "docker stop" is called
 exitOnSignal('SIGINT');
@@ -18,6 +19,34 @@ process.stdin.resume();
 
 // connection pool for psql
 const pool = new Pool()
+
+// initialise database
+setTimeout(function () {
+
+  var sql = fs.readFileSync('init.sql').toString()
+  pool.connect(function(err, client, done) {
+
+    if(err) {
+      return console.error('connection error', err)
+    }
+
+    client.query(sql, function(err, result) {
+
+      done()
+
+      if(err) {
+        console.log('Unable to bootstrap database: ', err)
+        process.exit(1)
+      }
+      else {
+        console.log("Finished bootstrapping db")
+      }
+
+    })
+
+  })
+
+}, 30000)
 
 // express app and middleware
 const app = express()
@@ -34,17 +63,18 @@ app.use(function(req, res, next) {
 });
 
 // simple health check endpoint
-app.get('/health', function(req, res) {
+app.get('/api/health', function(req, res) {
   res.send('Healthy :)')
 })
 
 // create a vote
-app.post('/vote', function(req, res) {
+app.post('/api/vote', function(req, res) {
 
   let answer = req.body.answer
   console.log("Vote received. Value: " + answer)
 
   pool.query('INSERT INTO votes (value) VALUES ($1)', [answer], (err, result) => {
+
     if (err) {
       console.error(err)
     } else {
@@ -55,9 +85,10 @@ app.post('/vote', function(req, res) {
 })
 
 // create a vote
-app.get('/results', function(req, res) {
+app.get('/api/results', function(req, res) {
 
   pool.query('SELECT value, COUNT(value) from votes GROUP BY value;', (err, result) => {
+
     if (err) {
       console.error(err)
     } else {

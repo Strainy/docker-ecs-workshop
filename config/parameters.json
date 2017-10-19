@@ -1,0 +1,54 @@
+[
+  {
+    "ParameterKey": "VpcId",
+    "ParameterValue": "vpc-c4c3f0a0"
+  },
+  {
+    "ParameterKey": "PrivateSubnets",
+    "ParameterValue": "subnet-cc2bdc85,subnet-22fa3d45"
+  },
+  {
+    "ParameterKey": "PublicSubnets",
+    "ParameterValue": "subnet-06fc3b61,subnet-cf2bdc86"
+  },
+  {
+    "ParameterKey": "InstanceType",
+    "ParameterValue": "t2.medium"
+  },
+  {
+    "ParameterKey": "ClusterSize",
+    "ParameterValue": "1"
+  },
+  {
+    "ParameterKey": "RepoUrl",
+    "ParameterValue": "590312749310.dkr.ecr.ap-southeast-2.amazonaws.com"
+  },
+  {
+    "ParameterKey": "WebImage",
+    "ParameterValue": "strainj-web:1.0.0"
+  },
+  {
+    "ParameterKey": "ApiImage",
+    "ParameterValue": "strainj-api:1.0.0"
+  },
+  {
+    "ParameterKey": "PostgresMultiAZ",
+    "ParameterValue": "true"
+  },
+  {
+    "ParameterKey": "PostgresDbStorage",
+    "ParameterValue": "10"
+  },
+  {
+    "ParameterKey": "PostgresDbInstanceClass",
+    "ParameterValue": "db.t2.medium"
+  },
+  {
+    "ParameterKey": "PostgresDbUser",
+    "ParameterValue": "votify"
+  },
+  {
+    "ParameterKey": "PostgresDbPassword",
+    "ParameterValue": "should-be-encrypted!"
+  }
+]
